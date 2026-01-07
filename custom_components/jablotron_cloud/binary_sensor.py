@@ -4,14 +4,15 @@ from __future__ import annotations
 
 import logging
 
+from jablotronpy import JablotronProgrammableGatesGate
+
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from jablotronpy import JablotronProgrammableGatesGate
 
-from . import JablotronConfigEntry, JablotronData, JablotronDataCoordinator, JablotronClient
+from . import JablotronClient, JablotronConfigEntry, JablotronData, JablotronDataCoordinator
 from .const import DOMAIN
 from .utils import get_component_state, pg_state_to_binary_state
 
@@ -19,9 +20,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: F841
+    hass: HomeAssistant,
     entry: JablotronConfigEntry,
-    async_add_entities: AddEntitiesCallback
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Register binary sensor entity for each Jablotron service uncontrollable programmable gate."""
 
@@ -67,14 +68,14 @@ async def async_setup_entry(
                     service_firmware,
                     gate_id,
                     gate_name,
-                    is_on
+                    is_on,
                 )
             )
 
     async_add_entities(entities)
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: JablotronConfigEntry) -> bool:  # noqa: F841
+async def async_unload_entry(hass: HomeAssistant, entry: JablotronConfigEntry) -> bool:
     """Unload binary sensor entities."""
 
     return True
@@ -96,7 +97,7 @@ class JablotronProgrammableGate(CoordinatorEntity[JablotronDataCoordinator], Bin
         service_firmware: str,
         gate_id: str,
         gate_name: str,
-        is_on: bool
+        is_on: bool,
     ) -> None:
         """Initialize Jablotron binary sensor."""
 
@@ -126,7 +127,7 @@ class JablotronProgrammableGate(CoordinatorEntity[JablotronDataCoordinator], Bin
             name=self._service_name,
             manufacturer="Jablotron",
             model=self._service_type,
-            sw_version=self._service_firmware
+            sw_version=self._service_firmware,
         )
 
     # noinspection DuplicatedCode

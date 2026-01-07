@@ -4,20 +4,21 @@ from __future__ import annotations
 
 import logging
 
+from jablotronpy import IncorrectPinCodeException, UnauthorizedException
+
 from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntity,
     AlarmControlPanelEntityFeature,
     AlarmControlPanelState,
-    CodeFormat
+    CodeFormat,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from jablotronpy import UnauthorizedException, IncorrectPinCodeException
 
-from . import JablotronConfigEntry, JablotronData, JablotronDataCoordinator, JablotronClient
+from . import JablotronClient, JablotronConfigEntry, JablotronData, JablotronDataCoordinator
 from .const import DOMAIN
 from .utils import get_component_state, section_state_to_alarm_state
 
@@ -25,9 +26,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: F841
+    hass: HomeAssistant,
     entry: JablotronConfigEntry,
-    async_add_entities: AddEntitiesCallback
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Register alarm panel entity for each Jablotron service section."""
 
@@ -76,14 +77,14 @@ async def async_setup_entry(
                     section_name,
                     partial_arm_enabled,
                     requires_authorization,
-                    current_state
+                    current_state,
                 )
             )
 
     async_add_entities(entities)
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: JablotronConfigEntry) -> bool:  # noqa: F841
+async def async_unload_entry(hass: HomeAssistant, entry: JablotronConfigEntry) -> bool:
     """Unload alarm panel entities."""
 
     return True
@@ -107,7 +108,7 @@ class JablotronAlarmControlPanel(CoordinatorEntity[JablotronDataCoordinator], Al
         section_name: str,
         partial_arm_enabled: bool,
         requires_authorization: bool,
-        current_state: AlarmControlPanelState
+        current_state: AlarmControlPanelState,
     ) -> None:
         """Initialize Jablotron alarm panel."""
 
@@ -161,7 +162,7 @@ class JablotronAlarmControlPanel(CoordinatorEntity[JablotronDataCoordinator], Al
             name=self._service_name,
             manufacturer="Jablotron",
             model=self._service_type,
-            sw_version=self._service_firmware
+            sw_version=self._service_firmware,
         )
 
     def alarm_disarm(self, code: str | None = None) -> None:
@@ -176,7 +177,7 @@ class JablotronAlarmControlPanel(CoordinatorEntity[JablotronDataCoordinator], Al
                 service_type=self._service_type,
                 component_id=self._section_id,
                 state="DISARM",
-                pin_code=code
+                pin_code=code,
             )
 
             # Set state to disarming if disarm action was successful
@@ -186,10 +187,7 @@ class JablotronAlarmControlPanel(CoordinatorEntity[JablotronDataCoordinator], Al
         except UnauthorizedException as ex:
             raise ConfigEntryAuthFailed(ex) from ex
         except IncorrectPinCodeException:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="invalid_pin"
-            )
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="invalid_pin")
 
     def alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm request."""
@@ -204,7 +202,7 @@ class JablotronAlarmControlPanel(CoordinatorEntity[JablotronDataCoordinator], Al
                 component_id=self._section_id,
                 state="ARM",
                 pin_code=code,
-                force=self._client.force_arm
+                force=self._client.force_arm,
             )
 
             # Set state to arming if arm action was successful
@@ -214,10 +212,7 @@ class JablotronAlarmControlPanel(CoordinatorEntity[JablotronDataCoordinator], Al
         except UnauthorizedException as ex:
             raise ConfigEntryAuthFailed(ex) from ex
         except IncorrectPinCodeException:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="invalid_pin"
-            )
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="invalid_pin")
 
     def alarm_arm_home(self, code: str | None = None) -> None:
         """Send partial arm request."""
@@ -236,7 +231,7 @@ class JablotronAlarmControlPanel(CoordinatorEntity[JablotronDataCoordinator], Al
                 component_id=self._section_id,
                 state="PARTIAL_ARM",
                 pin_code=code,
-                force=self._client.force_arm
+                force=self._client.force_arm,
             )
 
             # Set state to arming if partial arm action was successful
@@ -246,10 +241,7 @@ class JablotronAlarmControlPanel(CoordinatorEntity[JablotronDataCoordinator], Al
         except UnauthorizedException as ex:
             raise ConfigEntryAuthFailed(ex) from ex
         except IncorrectPinCodeException:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="invalid_pin"
-            )
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="invalid_pin")
 
     @callback
     def _handle_coordinator_update(self) -> None:

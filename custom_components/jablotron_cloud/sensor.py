@@ -4,24 +4,25 @@ from __future__ import annotations
 
 import logging
 
+from jablotronpy import JablotronThermoDevice
+
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from jablotronpy import JablotronThermoDevice
 
-from . import JablotronConfigEntry, JablotronData, JablotronDataCoordinator, JablotronClient
+from . import JablotronClient, JablotronConfigEntry, JablotronData, JablotronDataCoordinator
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: F841
+    hass: HomeAssistant,
     entry: JablotronConfigEntry,
-    async_add_entities: AddEntitiesCallback
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Register sensor entity for each Jablotron service thermo device."""
 
@@ -57,14 +58,14 @@ async def async_setup_entry(
                     service_type,
                     service_firmware,
                     thermo_device_id,
-                    current_temperature
+                    current_temperature,
                 )
             )
 
     async_add_entities(entities)
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: JablotronConfigEntry) -> bool:  # noqa: F841
+async def async_unload_entry(hass: HomeAssistant, entry: JablotronConfigEntry) -> bool:
     """Unload sensor entities."""
 
     return True
@@ -88,7 +89,7 @@ class JablotronSensor(CoordinatorEntity[JablotronDataCoordinator], SensorEntity)
         service_type: str,
         service_firmware: str,
         thermo_device_id: str,
-        current_temperature: float
+        current_temperature: float,
     ) -> None:
         """Initialize Jablotron sensor."""
 
@@ -117,7 +118,7 @@ class JablotronSensor(CoordinatorEntity[JablotronDataCoordinator], SensorEntity)
             name=self._service_name,
             manufacturer="Jablotron",
             model=self._service_type,
-            sw_version=self._service_firmware
+            sw_version=self._service_firmware,
         )
 
     @callback
@@ -141,8 +142,11 @@ class JablotronSensor(CoordinatorEntity[JablotronDataCoordinator], SensorEntity)
 
         # Get device
         thermo_device: JablotronThermoDevice | None = next(
-            filter(lambda device: device["object-device-id"] == self._thermo_device_id, thermo_devices),
-            None
+            filter(
+                lambda device: device["object-device-id"] == self._thermo_device_id,
+                thermo_devices,
+            ),
+            None,
         )
         if not thermo_device:
             _LOGGER.warning("No thermo device found with id '%s'!", self._thermo_device_id)
@@ -153,4 +157,7 @@ class JablotronSensor(CoordinatorEntity[JablotronDataCoordinator], SensorEntity)
         self._attr_native_value = thermo_device["temperature"]
         self.async_write_ha_state()
 
-        _LOGGER.debug("Successfully updated thermo device state for device '%s'", self._thermo_device_id)
+        _LOGGER.debug(
+            "Successfully updated thermo device state for device '%s'",
+            self._thermo_device_id,
+        )

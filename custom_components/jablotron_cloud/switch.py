@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import logging
 
+from jablotronpy import IncorrectPinCodeException, JablotronProgrammableGatesGate, UnauthorizedException
+
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from jablotronpy import JablotronProgrammableGatesGate, UnauthorizedException, IncorrectPinCodeException
 
-from . import JablotronConfigEntry, JablotronData, JablotronDataCoordinator, JablotronClient
+from . import JablotronClient, JablotronConfigEntry, JablotronData, JablotronDataCoordinator
 from .const import DOMAIN
 from .utils import get_component_state, pg_state_to_binary_state
 
@@ -20,9 +21,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: F841
+    hass: HomeAssistant,
     entry: JablotronConfigEntry,
-    async_add_entities: AddEntitiesCallback
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Register switch entity for each Jablotron service controllable programmable gate."""
 
@@ -68,14 +69,14 @@ async def async_setup_entry(
                     service_firmware,
                     gate_id,
                     gate_name,
-                    is_on
+                    is_on,
                 )
             )
 
     async_add_entities(entities)
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: JablotronConfigEntry) -> bool:  # noqa: F841
+async def async_unload_entry(hass: HomeAssistant, entry: JablotronConfigEntry) -> bool:
     """Unload switch entities."""
 
     return True
@@ -98,7 +99,7 @@ class JablotronProgrammableGate(CoordinatorEntity[JablotronDataCoordinator], Swi
         service_firmware: str,
         gate_id: str,
         gate_name: str,
-        is_on: bool
+        is_on: bool,
     ) -> None:
         """Initialize Jablotron switch."""
 
@@ -128,7 +129,7 @@ class JablotronProgrammableGate(CoordinatorEntity[JablotronDataCoordinator], Swi
             name=self._service_name,
             manufacturer="Jablotron",
             model=self._service_type,
-            sw_version=self._service_firmware
+            sw_version=self._service_firmware,
         )
 
     def turn_on(self, **kwargs) -> None:
@@ -141,7 +142,7 @@ class JablotronProgrammableGate(CoordinatorEntity[JablotronDataCoordinator], Swi
                 service_id=self._service_id,
                 service_type=self._service_type,
                 component_id=self._gate_id,
-                state="ON"
+                state="ON",
             )
 
             # Set state to on if turn on action was successful
@@ -151,10 +152,7 @@ class JablotronProgrammableGate(CoordinatorEntity[JablotronDataCoordinator], Swi
         except UnauthorizedException as ex:
             raise ConfigEntryAuthFailed(ex) from ex
         except IncorrectPinCodeException:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="invalid_pin"
-            )
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="invalid_pin")
 
     def turn_off(self, **kwargs) -> None:
         """Send turn off request."""
@@ -166,7 +164,7 @@ class JablotronProgrammableGate(CoordinatorEntity[JablotronDataCoordinator], Swi
                 service_id=self._service_id,
                 service_type=self._service_type,
                 component_id=self._gate_id,
-                state="OFF"
+                state="OFF",
             )
 
             # Set state to off if turn off action was successful
@@ -176,10 +174,7 @@ class JablotronProgrammableGate(CoordinatorEntity[JablotronDataCoordinator], Swi
         except UnauthorizedException as ex:
             raise ConfigEntryAuthFailed(ex) from ex
         except IncorrectPinCodeException:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="invalid_pin"
-            )
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="invalid_pin")
 
     # noinspection DuplicatedCode
     @callback
